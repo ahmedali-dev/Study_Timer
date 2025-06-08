@@ -39,5 +39,5 @@ package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 flet = {extras = ["all"], version = "0.27.6"}
-pygame = {extra = ["all"], version = "2.6.1"}
-pygments = {extras = ["all"]}
+pygame = {extras = ["all"], version = "2.6.1"}
+plyer = {extras = ["all"], version = "2.1.0"}

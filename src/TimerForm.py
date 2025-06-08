@@ -1,7 +1,6 @@
 import flet
 from flet import (TextField, Row, MainAxisAlignment, Container, AlertDialog, Column, Text, ElevatedButton,
                   CrossAxisAlignment, alignment, padding, Page)
-from pygments.styles.dracula import background
 
 
 class TimerForm:
