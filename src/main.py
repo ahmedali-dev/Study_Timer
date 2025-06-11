@@ -12,8 +12,9 @@ import pygame
 import os
 import sys
 
+
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and PyInstaller """
+    """Get absolute path to resource, works for dev and PyInstaller"""
     try:
         base_path = sys._MEIPASS  # PyInstaller temporary folder
     except AttributeError:
@@ -21,13 +22,39 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+
+def getPath(p):
+    settingsPath = os.path.join(os.path.dirname(__file__), p)
+    # return settingsPath
+    return resource_path(p)
+
+
 def main(page: ft.Page):
+    # page.window.title_bar_hidden = True
     page.title = "Study Timer"
-    icon_path = resource_path("assets/icon.ico")
+    icon_path = getPath("assets/icon.ico")
     page.window.width = 800
     page.window.height = 500
+    page.window.center()
     # page.set_ic
     data = timerModel.loadData()
+    # def change_button(e):
+    #     if e.state == ft.AudioState.PAUSED:
+    #         b.text = "Resume playing"
+    #         b.on_click = lambda e: audio1.resume()
+
+    #     elif e.state == ft.AudioState.PLAYING:
+    #         b.text = "Pause playing"
+    #         b.on_click = lambda e: audio1.pause()
+
+    #     b.update()
+    # audio1 = ft.Audio(
+    #     src="D:/music/ADHD_ADD Relief - WHITE NOISE - Natural Sound For Better Focus And Sleep (Proven by Science)(MP3_160K).mp3",
+    #     autoplay=True,
+    #     on_state_changed=change_button
+    # )
+    # b = ft.ElevatedButton("Pause playing", on_click=lambda _: audio1.pause())
+    # page.overlay.append(audio1)
 
     # notafication
 
@@ -71,25 +98,41 @@ def main(page: ft.Page):
         total_break_seconds = breaks * 60
         sessionFound = 1
         while sessionFound <= session and running:
+            # start timer sound here
+            pygame.mixer.music.load(getPath("assets/start_sound.mp3"))
+            pygame.mixer.music.set_volume(1.0)
+            pygame.mixer.music.play()
+            time.sleep(6)
             pygame.mixer.music.load(data["bg_music"])
+            pygame.mixer.music.set_volume(0.3)
             pygame.mixer.music.play()
             # study loops
             while total_study_seconds > 0 and running:
                 if not paused:
                     mins, sec = divmod(total_study_seconds, 60)
-                    update_timer_display("Study (" + str(sessionFound) + ":" + str(sessionFound) + ")", mins, sec)
+                    update_timer_display(
+                        "Study (" + str(sessionFound) + ":" + str(session) + ")",
+                        mins,
+                        sec,
+                    )
                     time.sleep(1)
                     total_study_seconds -= 1
                 else:
                     time.sleep(1)
             # break loops
 
-            pygame.mixer.music.load(data["end"])
+            pygame.mixer.music.load(getPath("assets/finish_sound.mp3"))
+            pygame.mixer.music.set_volume(1.0)
             pygame.mixer.music.play()
+            time.sleep(7)
             while total_break_seconds > 0 and running:
                 if not paused:
                     mins, sec = divmod(total_break_seconds, 60)
-                    update_timer_display("Break ("+ str(sessionFound) + ":" + str(sessionFound) + ")", mins, sec)
+                    update_timer_display(
+                        "Break (" + str(sessionFound) + ":" + str(session) + ")",
+                        mins,
+                        sec,
+                    )
                     total_break_seconds -= 1
                     time.sleep(1)
                 else:
@@ -110,13 +153,13 @@ def main(page: ft.Page):
         study_time = int(timer_form.get_timer_minutes().value)
         break_time = int(timer_form.get_timer_break().value)
         session = int(timer_form.get_timer_sessions().value)
-        Route(timer_display.content)
         notification.notify(
             title="Timer start",
             message="Timer is start end after " + str(study_time),
             timeout=3,
-            app_icon=icon_path
+            app_icon=icon_path,
         )
+        Route(timer_display.content)
         # pygame.mixer.music.load(data['start'])
         # pygame.mixer.music.set_volume(0.3)
         # pygame.mixer.music.play()
@@ -150,13 +193,13 @@ def main(page: ft.Page):
                 title="Timer Paused",
                 message="Timer is Paused",
                 timeout=3,
-                app_icon=icon_path
+                app_icon=icon_path,
             )
         page.update()
 
     def stopTimerSound():
         time.sleep(2)
-        # pygame.mixer.music.stop()
+        pygame.mixer.music.stop()
 
     def stopTimer():
         nonlocal running, paused
@@ -169,15 +212,43 @@ def main(page: ft.Page):
         content_area.content = content()
         page.update()
 
+    # Custom Title Bar
+    custom_title_bar = ft.Container(
+        content=ft.Row(
+            [
+                ft.WindowDragArea(
+                    content=ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Text("My App", size=16),
+                                ft.IconButton(
+                                    icon=ft.icons.CLOSE,
+                                    on_click=lambda e: page.window.close(),
+                                ),
+                            ]
+                        ),
+                        height=50,
+                        bgcolor=ft.Colors.BLUE_GREY_500,
+                    ),
+                    height=50,
+                    expand=True,
+                )
+            ],
+            alignment="center",
+        ),
+        height=50,
+        bgcolor=ft.Colors.BLUE_GREY_400,
+    )
+
+    # page.add(custom_title_bar)
     page.add(
         ft.Column(
             [
-                # timer_display.content(),
-                # timer_form.content(),
-                content_area
+                content_area,
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            expand=True,
         )
     )
     time.sleep(5)
@@ -185,109 +256,5 @@ def main(page: ft.Page):
     page.update()
 
 
-"""
-    def defaultPage(e):
-        content_area.content = ft.Container(
-            content=ft.Column(
-                [
-                    inputContent.get("content"),
-                    ft.Row([
-                        ft.ElevatedButton("start timer", on_click=goToStartTimer),
-                        ft.ElevatedButton('🕹', on_click=goToSettings),
-                    ], alignment=ft.MainAxisAlignment.CENTER),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            ),
-            expand=True,
-            alignment=ft.alignment.center,
-            padding=20,
-        )
-        page.update()
-
-    settingsContent = settings(page, defaultPage)
-
-    def goToStartTimer(e):
-        # check input content is valid
-        page.update()
-
-        inputs_validation = (inputContent.get("Study_Minutes").value == ""
-                             or inputContent.get("Break_Minutes").value == ""
-                             or inputContent.get("Total_Sessions").value == ""
-                             )
-
-
-        if (
-                inputs_validation
-        ):
-            page.open(inputContent.get('input_dlg'))
-            return
-
-        #saved input value
-        timerDataUpdate = {
-            "study": int(inputContent.get("Study_Minutes").value),
-            "break": int(inputContent.get("Break_Minutes").value),
-            "total": int(inputContent.get("Total_Sessions").value),
-        }
-        timerModel.saveData(timerDataUpdate)
-
-        pg.mixer.music.load(data.get('bg_music'))
-        pg.mixer.music.set_volume(0.3)
-        pg.mixer.music.play()
-        content_area.content = headerContent.get('content')
-        page.update()
-
-
-
-
-    def goToSettings(e):
-        content_area.content = settingsContent.get('content')
-        page.update()
-
-
-
-
-
-    content_area = ft.Container(
-        content=ft.Column(
-            [
-                inputContent.get("content"),
-                ft.Row([
-                    ft.ElevatedButton("start timer", on_click=goToStartTimer),
-                    ft.ElevatedButton('🕹', on_click=goToSettings),
-                ], alignment=ft.MainAxisAlignment.CENTER),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        ),
-        expand=True,
-        alignment=ft.alignment.center,
-        padding=20,
-    )
-
-    page.add(content_area)
-    
-    
-    AlertDialog(
-            title=Text("input validation"),
-            content=Column(
-                [
-                    Text("Input Validation Error"),
-                    ElevatedButton("Close", on_click=lambda e: page.close(self.dlg)),
-                ],
-                expand=False,
-                alignment=MainAxisAlignment.CENTER,
-                horizontal_alignment=CrossAxisAlignment.CENTER,
-                height=50,
-            ),
-            
-        
-        
-            alignment=alignment.center,
-            title_padding=padding.all(15),
-        )
-"""
-
 if __name__ == "__main__":
-    ft.app(target=main,assets_dir="assets")
-
+    ft.app(target=main, assets_dir="assets")

@@ -12,6 +12,8 @@ def resource_path(relative_path):
 
 def getSettingPath():
     settingsPath = resource_path("data/timer_settings.json")
+    # settingsPath = os.path.join(os.path.dirname(__file__), 'timer_settings.json')
+    print(settingsPath)
     if os.path.exists(settingsPath):
         return settingsPath
     else:
