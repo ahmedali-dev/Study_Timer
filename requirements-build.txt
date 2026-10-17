@@ -1,0 +1,4 @@
+-r requirements.txt
+flet-cli==0.27.6
+pyinstaller==6.12.0
+Pillow==10.4.0

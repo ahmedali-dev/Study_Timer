@@ -1,0 +1,5 @@
+flet==0.27.6
+flet-audio==0.1.0
+flet-desktop==0.27.6
+pygame==2.6.1
+plyer==2.1.0; sys_platform == 'win32'

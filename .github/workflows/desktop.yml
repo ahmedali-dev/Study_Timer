@@ -1,0 +1,45 @@
+name: FocusNest desktop builds
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-14, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Linux desktop dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-0 libmpv1 libnotify-bin libasound2
+      - run: python -m pip install -r requirements-build.txt
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/build_desktop.py
+      - name: Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bundle = Get-ChildItem dist -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppSource=$($bundle.FullName)\FocusNest" "/DOutputDir=$($bundle.FullName)" packaging/windows.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FocusNest-${{ runner.os }}
+          path: |
+            dist/**/*.zip
+            dist/**/*Setup.exe
+            dist/**/*.dmg
+            dist/**/*.deb
+          if-no-files-found: error

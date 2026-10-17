@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=FocusNest
+Comment=Plan tasks and focus with a recoverable timer
+Exec=FocusNest
+Icon=focusnest
+Terminal=false
+Categories=Education;Utility;
