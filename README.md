@@ -6,6 +6,12 @@ A warm, calm focus timer with scheduled tasks, recoverable sessions, and local p
 
 **Rust edition (0.3.0):** the new Tauri + Rust + React application lives separately in [focusnest_rust](focusnest_rust/README.md). See its [native build instructions](focusnest_rust/BUILD.md). The Python/Flet version and its data remain intact; importing into the Rust app is explicit and one-way.
 
+## App preview
+
+![FocusNest Rust desktop app with its warm sidebar, focus timer, and session settings](focusnest_rust/docs/screenshots/focusnest-timer.jpg)
+
+Current FocusNest 0.3.0 Rust edition, captured from the macOS desktop app.
+
 **Build on macOS, Windows, or Linux:** follow [BUILD.md](BUILD.md).
 
 ### New in 0.2.0
@@ -83,14 +89,4 @@ Set your study time, break time, and number of sessions.
 Choose background music and sound notifications.
 
 Start the timer and focus on your study!
-
-### Legacy preview
-
-These screenshots show the original Study Timer interface, before the FocusNest branding and sidebar redesign.
->>
-![2025-06-09 06_20_59-Study Timer](https://github.com/user-attachments/assets/2fb4050d-167a-4491-a490-572aa0a4c92d)
->>
-![2025-06-09 06_21_08-Study Timer](https://github.com/user-attachments/assets/2889d74e-1ab1-49ad-abf7-19ba0780de75)
->>
-![2025-06-09 06_20_30-Study Timer](https://github.com/user-attachments/assets/7a9f67c3-f205-44fa-86c5-7f70acda27d3)
 

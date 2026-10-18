@@ -2,6 +2,12 @@
 
 A standalone migration of FocusNest to **Tauri 2 + Rust + React/TypeScript**, in this folder only. The Python/Flet application remains available in the parent directory.
 
+## App preview
+
+![FocusNest Rust desktop app with its warm sidebar, focus timer, and session settings](docs/screenshots/focusnest-timer.jpg)
+
+Actual macOS desktop screenshot of FocusNest 0.3.0; no simulated task or progress data.
+
 ## Implemented
 
 - Warm cream/terracotta design, persistent sidebar, and the selected FN logo.
