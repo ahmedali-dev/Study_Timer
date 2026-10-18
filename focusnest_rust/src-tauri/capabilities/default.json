@@ -1,0 +1,6 @@
+{
+  "identifier": "main-capability",
+  "description": "Main window and opt-in desktop notifications only",
+  "windows": ["main"],
+  "permissions": ["core:default", "notification:default"]
+}

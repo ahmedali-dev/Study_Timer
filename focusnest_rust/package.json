@@ -1,0 +1,35 @@
+{
+  "name": "focusnest-rust",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write src tests scripts *.json *.ts *.html *.md src-tauri/*.json src-tauri/capabilities/*.json",
+    "format:check": "prettier --check src tests scripts *.json *.ts *.html *.md src-tauri/*.json src-tauri/capabilities/*.json",
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "build:mac": "bash scripts/build-macos.sh",
+    "build:windows": "powershell -NoProfile -File scripts/build-windows.ps1",
+    "build:linux": "bash scripts/build-linux.sh",
+    "test": "tsc --target ES2022 --module ES2022 --skipLibCheck --outDir .test-build src/lib.ts && node --test tests/*.test.mjs",
+    "tauri": "node scripts/tauri.mjs",
+    "desktop": "node scripts/tauri.mjs dev",
+    "bundle": "node scripts/tauri.mjs build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-notification": "^2.0.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "prettier": "^3.9.10",
+    "typescript": "~5.7.3",
+    "vite": "^6.1.0"
+  }
+}

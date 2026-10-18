@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+dist/
+src-tauri/target/
+src-tauri/gen/
+.toolchain/
+.cache/
+.test-data/
+.test-build/
+*.sqlite3*
+!src-tauri/Cargo.lock

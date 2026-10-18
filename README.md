@@ -4,6 +4,8 @@
 
 A warm, calm focus timer with scheduled tasks, recoverable sessions, and local progress tracking.
 
+**Rust edition (0.3.0):** the new Tauri + Rust + React application lives separately in [focusnest_rust](focusnest_rust/README.md). See its [native build instructions](focusnest_rust/BUILD.md). The Python/Flet version and its data remain intact; importing into the Rust app is explicit and one-way.
+
 **Build on macOS, Windows, or Linux:** follow [BUILD.md](BUILD.md).
 
 ### New in 0.2.0
