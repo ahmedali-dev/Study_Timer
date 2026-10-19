@@ -129,6 +129,23 @@ Do not point this variable at the Python app's data directory. Import through Se
 
 ## Release checklist
 
+### Automated GitHub Releases
+
+`.github/workflows/focusnest-release.yml` builds macOS ARM64/Intel DMGs, native Windows x64/ARM64 NSIS installers, and Linux x64 DEB/AppImage packages on matching hosted runners. Build jobs have read-only repository permissions. Only the final publication job has `contents: write`.
+
+To publish a version, update `package.json`, `package-lock.json` (including its root package entry), `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, `src-tauri/tauri.conf.json`, and `RELEASE_NOTES.md`, commit and push them, then push the matching tag:
+
+```sh
+git tag -a focusnest-v0.3.0 -m "FocusNest 0.3.0"
+git push origin focusnest-v0.3.0
+```
+
+The `focusnest-v` prefix distinguishes Rust releases from the legacy Python `v*` workflow. A manual retry is available in Actions → FocusNest release → Run workflow: enter the **existing** tag. Version/tag mismatches fail before any build. All jobs check out the same validated source SHA, and publication rejects a tag moved after validation.
+
+Every platform must pass tests, formatting, linting and packaging. The final job requires all six expected installers, writes `SHA256SUMS`, creates a draft, uploads/verifies the assets, and then publishes the release. Failed builds never publish a partial release. A failed upload leaves a draft that can be retried for the same tag/commit; already-published releases are not overwritten. Actions installer artifacts are retained for 14 days; GitHub Release assets remain available independently.
+
+The workflow does not configure Apple notarization, Windows certificate signing or automatic updates. The release notes explicitly disclose unsigned builds and migration limitations. Keep system security protections enabled and complete the manual checks below before broad distribution.
+
 - Run frontend tests, production compilation, Rust tests and formatting checks.
 - Start a focus timer and verify remaining time decreases. Pause/resume, skip focus, skip break, zero break and final-break behavior must all work.
 - Relaunch mid-session: recover paused, preserving remaining time/round. Verify clean close and crash recovery separately.

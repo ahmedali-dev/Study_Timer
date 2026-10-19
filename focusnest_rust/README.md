@@ -53,6 +53,8 @@ See [BUILD.md](BUILD.md) for native builds on macOS, Windows and Linux and the m
 
 For one-command release builds, run `npm run build:mac`, `npm run build:windows` (both x64 and ARM64), or `npm run build:linux` on the corresponding OS after installing its prerequisites. Each script installs locked dependencies and runs tests by default; see [script options and output paths](BUILD.md#one-command-build-scripts).
 
+Tagged releases (`focusnest-vX.Y.Z`) also build and publish installers through GitHub Actions after all platform checks pass. See [automated release instructions](BUILD.md#automated-github-releases). Installers are not certificate-signed/notarized yet; see each release's notes before installing.
+
 ## Data safety
 
 The application identifier is `com.focusnest.rust` so it can coexist with the Python edition. It writes `focusnest.sqlite3` inside Tauri's OS-specific application data directory. Settings shows the exact path. `FOCUSNEST_RUST_DATA_DIR` overrides **only the Rust edition** for development/testing. The Python edition's environment variables are intentionally not used.

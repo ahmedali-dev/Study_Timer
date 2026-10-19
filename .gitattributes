@@ -1,0 +1,8 @@
+# Keep checked-out Rust/frontend sources identical across Windows and Unix CI.
+focusnest_rust/** text=auto eol=lf
+.github/workflows/*.yml text eol=lf
+focusnest_rust/**/*.png binary
+focusnest_rust/**/*.jpg binary
+focusnest_rust/**/*.ico binary
+focusnest_rust/**/*.icns binary
+focusnest_rust/**/*.mp3 binary

@@ -1,0 +1,140 @@
+name: FocusNest release
+
+on:
+  push:
+    tags: ['focusnest-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag matching the app version (e.g. focusnest-v0.3.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: focusnest-release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      commit: ${{ steps.version.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - id: version
+        name: Validate tag, version files, and immutable source commit
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: node focusnest_rust/scripts/release.mjs validate "$RELEASE_TAG"
+
+  build:
+    needs: validate
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            command: bash scripts/build-macos.sh --arch arm64 --skip-install --skip-tests
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            command: bash scripts/build-macos.sh --arch x64 --skip-install --skip-tests
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            command: pwsh -NoProfile -File scripts/build-windows.ps1 -Architecture x64 -SkipInstall -SkipTests
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            command: pwsh -NoProfile -File scripts/build-windows.ps1 -Architecture arm64 -SkipInstall -SkipTests
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            command: bash scripts/build-linux.sh --skip-install --skip-tests
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: focusnest_rust
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.validate.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: focusnest_rust/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: ${{ matrix.target }}
+      - name: Linux desktop and packaging prerequisites
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2
+      - run: npm ci
+      - run: npm test
+      - run: npm run format:check
+      - run: npm run build
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Build installers using the platform script
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: ${{ matrix.command }}
+      - name: Collect only the expected installers with unique platform names
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+        run: node scripts/release.mjs collect "$env:BUILD_TARGET"
+        if: runner.os == 'Windows'
+      - name: Collect only the expected installers with unique platform names
+        if: runner.os != 'Windows'
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+        run: node scripts/release.mjs collect "$BUILD_TARGET"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FocusNest-installers-${{ matrix.target }}
+          path: focusnest_rust/dist/release/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Verify all assets and publish GitHub Release
+    needs: [validate, build]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.validate.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: FocusNest-installers-*
+          path: release-assets
+          merge-multiple: true
+      - name: Require every platform and write SHA256SUMS
+        run: node focusnest_rust/scripts/release.mjs manifest release-assets
+      - name: Upload assets to a draft, then publish only after upload succeeds
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          RELEASE_COMMIT: ${{ needs.validate.outputs.commit }}
+        run: node focusnest_rust/scripts/release.mjs publish release-assets
